@@ -13,14 +13,7 @@ export class AppComponent {
       name: 'Florida',
       value: '2'
     },
-    {
-      name: 'New Mexico',
-      value: '3'
-    },
-    {
-      name: 'Arkansas',
-      value: '2'
-    },
+
     {
       name: 'Oregon',
       value: '0'
@@ -28,6 +21,10 @@ export class AppComponent {
     {
       name: 'Tennessee',
       value: '9'
+    },
+    {
+      name: 'Texas',
+      value: 43
     }
   ];
 

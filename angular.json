@@ -132,17 +132,10 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@linnenschmidt/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
             "tsConfig": "projects/ng-d3-us-colormap/tsconfig.lib.json",
-            "project": "projects/ng-d3-us-colormap/ng-package.json",
-            "assets": [
-              {
-                "glob": "*.json",
-                "input": "src/lib/map-info",
-                "output": "lib/map-info"
-              }
-            ]
+            "project": "projects/ng-d3-us-colormap/ng-package.json"
           }
         },
         "test": {
