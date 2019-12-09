@@ -19,7 +19,15 @@
       "dom"
     ],
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "ng-d3-us-colormap": [
+        "dist/ng-d3-us-colormap"
+      ],
+      "ng-d3-us-colormap/*": [
+        "dist/ng-d3-us-colormap/*"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

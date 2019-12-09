@@ -124,6 +124,48 @@
           }
         }
       }
+    },
+    "ng-d3-us-colormap": {
+      "projectType": "library",
+      "root": "projects/ng-d3-us-colormap",
+      "sourceRoot": "projects/ng-d3-us-colormap/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@linnenschmidt/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/ng-d3-us-colormap/tsconfig.lib.json",
+            "project": "projects/ng-d3-us-colormap/ng-package.json",
+            "assets": [
+              {
+                "glob": "*.json",
+                "input": "src/lib/map-info",
+                "output": "lib/map-info"
+              }
+            ]
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ng-d3-us-colormap/src/test.ts",
+            "tsConfig": "projects/ng-d3-us-colormap/tsconfig.spec.json",
+            "karmaConfig": "projects/ng-d3-us-colormap/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/ng-d3-us-colormap/tsconfig.lib.json",
+              "projects/ng-d3-us-colormap/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }},
   "defaultProject": "us-heatmap"
 }
