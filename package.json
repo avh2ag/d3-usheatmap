@@ -19,7 +19,10 @@
     "@angular/platform-browser": "~8.2.11",
     "@angular/platform-browser-dynamic": "~8.2.11",
     "@angular/router": "~8.2.11",
+    "d3": "^5.14.2",
+    "d3-scale-chromatic": "^1.5.0",
     "rxjs": "~6.4.0",
+    "topojson-client": "^3.1.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1"
   },
