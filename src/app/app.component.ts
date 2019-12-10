@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -8,7 +8,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'us-heatmap';
-  data: Array<{ name: string, value: any }> = [
+  data = of([
     {
       name: 'Florida',
       value: '2'
@@ -26,6 +26,6 @@ export class AppComponent {
       name: 'Texas',
       value: 43
     }
-  ];
+  ]);
 
 }

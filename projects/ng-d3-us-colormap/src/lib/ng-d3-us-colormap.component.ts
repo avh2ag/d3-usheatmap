@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, AfterViewInit, HostListener, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, HostListener, ViewChild, OnChanges, SimpleChanges, SimpleChange } from '@angular/core';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import { stateCodes } from './map-info/states';
@@ -12,12 +12,12 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
   `,
   styles: []
 })
-export class NgD3UsColormapComponent implements OnInit, AfterViewInit {
+export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() chartId = 'united-states';
   @Input() data = [];
   @Input() lowColor = '#c9c9c9';
   @Input() highColor = '#1976d2';
-
+  containerSelector = `#${this.chartId}`;
   @ViewChild('chartContainer', {static: false}) chartContainer;
   constructor() { }
 
@@ -25,35 +25,45 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.drawMap();
   }
+  ngOnChanges(changes: SimpleChanges) {
+    // check for changes to data, lowColor, highColor
+    this.checkForChange(changes, 'data', this.drawMap);
+    this.checkForChange(changes, 'lowColor', this.drawMap);
+    this.checkForChange(changes, 'highColor', this.drawMap);
+  }
+  // callback to run if change detected
+  private checkForChange(changes: SimpleChanges, changeKeyName: string, cb: () => any) {
+    const change: SimpleChange = changes[changeKeyName];
+    if (!change || change.firstChange) {
+      return;
+    }
+    if (change.previousValue !== change.currentValue) {
+      cb();
+    }
+  }
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
     setTimeout(() => {
       this.drawMap();
-    }, 50);
+    }, 100);
   }
 
-  drawMap() {
-    const containerSelector = `#${this.chartId}`;
-    d3.select(`${containerSelector} svg`).remove();
-    let svg = d3.select(containerSelector)
+  drawMap = () => {
+    d3.select(`${this.containerSelector} svg`).remove();
+    let svg = d3.select(this.containerSelector)
                   .append('svg')
                   .attr('width', '100%')
                   .attr('height', '100%');
-    const scale = window.innerWidth / 1000 * .9; // 1000 for the 1K resolution we're using
-    svg = svg.append('g')
-      .attr('class', 'heatmap-g')
-      .attr('transform', `scale(${scale})`);
 
     const stateValues = d3.map();
     this.data.forEach( d => {
       stateValues.set(d.name, +d.value);
     });
-    const legendText = 'Legend'; // make this config upcoming
 
     const stateNames = d3.map();
     stateCodes.forEach((d) => {
-      stateNames.set(d.id, d.name);
+      stateNames.set(+d.id, d.name);
     });
     const path = d3.geoPath();
 
@@ -69,12 +79,10 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit {
       }
     });
 
-    const colorScheme: Array<any> = d3.schemeBlues[9];
-    const rangeEnd = colorScheme.length;
     const colorScale = d3.scaleLinear().domain([0, dataMax]).range([this.lowColor, this.highColor]);
     /* legend */
     const legendWidth = 60;
-    const legendHeight = 500;
+    const legendHeight = Math.min(window.innerHeight, 300);
     const key = svg
       .append('g')
       .attr('width', legendWidth)
@@ -117,7 +125,11 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit {
       .attr('transform', 'translate(0,10)')
       .call(yAxis);
     /* end legend */
-
+    // exclude legend from the scale
+    const scale = window.innerWidth / 1000 * .9; // 1000 for the 1K resolution we're using
+    svg = svg.append('g')
+      .attr('class', 'heatmap-g')
+      .attr('transform', `scale(${scale})`);
     svg.append('g')
       .attr('class', 'state-container')
       .attr('transform', `translate(${legendWidth}, 0)`)
@@ -127,14 +139,14 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit {
       .append('path')
         .attr('fill', (d) => {
           // pick color for state
-          d.rate = stateValues.get(stateNames.get(d.id)) || 0;
+          d.rate = stateValues.get(stateNames.get(+d.id)) || 0;
           const col =  colorScale(d.rate);
           return col ? col : this.lowColor;
         })
         .attr('d', path)
-      .append('title')
+      .append('title') // convert to tooltip custom
         .text(d => {
-          const stateName = stateNames.get(d.id);
+          const stateName = stateNames.get(+d.id);
           const val = stateValues.get(stateName);
           const valueText = val ? val : 'N/A';
           return `${stateName}: ${valueText}`;
