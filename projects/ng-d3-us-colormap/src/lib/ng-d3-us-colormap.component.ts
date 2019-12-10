@@ -8,6 +8,7 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
   selector: 'ng-d3-us-colormap',
   template: `
     <div #chartContainer [id]='chartId'>
+      <div class="colormap-tooltip"></div>
     </div>
   `,
   styles: []
@@ -17,6 +18,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
   @Input() data = [];
   @Input() lowColor = '#c9c9c9';
   @Input() highColor = '#1976d2';
+  @Input() tooltipTextFn: (stateName: string, value: string ) => string;
   containerSelector = `#${this.chartId}`;
   @ViewChild('chartContainer', {static: false}) chartContainer;
   constructor() { }
@@ -40,6 +42,10 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     if (change.previousValue !== change.currentValue) {
       cb();
     }
+  }
+
+  private getTooltipHTML(stateName: string, value: string) {
+    return this.tooltipTextFn ? this.tooltipTextFn(stateName, value) : `${stateName}: ${value}`;
   }
 
   @HostListener('window:resize', ['$event'])
@@ -128,7 +134,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     // exclude legend from the scale
     const scale = window.innerWidth / 1000 * .9; // 1000 for the 1K resolution we're using
     svg = svg.append('g')
-      .attr('class', 'heatmap-g')
+      .attr('class', 'colormap-g')
       .attr('transform', `scale(${scale})`);
     svg.append('g')
       .attr('class', 'state-container')
@@ -137,25 +143,40 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       .data(topojson.feature(US_FEATURE_DATA, US_FEATURE_DATA.objects.states).features)
       .enter()
       .append('path')
+        .attr('class', 'state')
         .attr('fill', (d) => {
           // pick color for state
-          d.rate = stateValues.get(stateNames.get(+d.id)) || 0;
-          const col =  colorScale(d.rate);
+          const val = stateValues.get(stateNames.get(+d.id)) || 0;
+          const col =  colorScale(val);
           return col ? col : this.lowColor;
         })
         .attr('d', path)
-      .append('title') // convert to tooltip custom
-        .text(d => {
-          const stateName = stateNames.get(+d.id);
-          const val = stateValues.get(stateName);
-          const valueText = val ? val : 'N/A';
-          return `${stateName}: ${valueText}`;
+        .on('mouseover', d => {
+          d3.select(`#${this.chartId} .colormap-tooltip`)
+            .html(() => {
+              const stateName = stateNames.get(+d.id);
+              const val = stateValues.get(stateName);
+              const valueText = val ? val : 'N/A';
+              return this.getTooltipHTML(stateName, valueText);
+            })
+            .transition()
+            .duration(200)
+            .style('left', `${d3.event.pageX}px`)
+            .style('top', `${d3.event.pageY}px`)
+            .style('opacity', 1);
+        })
+        .on('mouseout', d => {
+          d3.select(`#${this.chartId} .colormap-tooltip`)
+            .html('')
+            .transition()
+            .duration(400)
+            .style('opacity', 0);
         });
     // draw state outlines
     svg.append('path')
     .attr('transform', `translate(${legendWidth}, 0)`)
       .datum(topojson.mesh(US_FEATURE_DATA, US_FEATURE_DATA.objects.states, (a, b) => a !== b ))
-      .attr('class', 'states')
+      .attr('class', 'state-paths')
       .attr('d', path);
 
   }
