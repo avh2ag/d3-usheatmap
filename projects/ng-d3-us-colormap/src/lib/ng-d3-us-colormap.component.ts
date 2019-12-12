@@ -119,8 +119,9 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       .attr('stop-color', this.lowColor)
       .attr('stop-opacity', 1);
 
+    const gradientRectWidth = 15;
     key.append('rect')
-    .attr('width', 25)
+    .attr('width', gradientRectWidth)
     .attr('height', legendHeight)
     .style('fill', 'url(#gradient)')
     .attr('transform', 'translate(0,10)');
@@ -133,7 +134,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
 
     key.append('g')
       .attr('class', 'y axis')
-      .attr('transform', 'translate(0,10)')
+      .attr('transform', `translate(${gradientRectWidth},10)`)
       .call(yAxis);
     /* end legend */
     // exclude legend from the scale
@@ -167,8 +168,8 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
               const valueText = val ? val : 'N/A';
               return this.getTooltipHTML(stateName, valueText);
             })
-            // .transition()
-            // .duration(200)
+            .transition()
+            .duration(200)
             .style('left', `${d3.event.pageX}px`)
             .style('top', `${d3.event.pageY}px`)
             .style('opacity', 1);
@@ -176,8 +177,8 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         .on('mouseout', d => {
           d3.select(`#${this.chartId} .colormap-tooltip`)
             .html('')
-            // .transition()
-            // .duration(200)
+            .transition()
+            .duration(200)
             .style('left', `0px`)
             .style('top', `0px`)
             .style('opacity', 0);
