@@ -90,10 +90,17 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       }
     });
 
+    const bounds = this.chartContainer.nativeElement.getBoundingClientRect();
+    const width = bounds.width ? bounds.width : window.innerWidth;
+    const height = bounds.height ? bounds.height : window.innerHeight;
+    const constraintSize = Math.min(width, height);
+    const resolution = 1000;
+    const scale = constraintSize / resolution * this.scaleFactor;
+
     const colorScale = d3.scaleLinear().domain([0, dataMax]).range([this.lowColor, this.highColor]);
     /* legend */
-    const legendWidth = 60;
-    const legendHeight = Math.min(window.innerHeight, 300);
+    const legendWidth = 60 * this.scaleFactor;
+    const legendHeight = scale * constraintSize;
     const key = svg
       .append('g')
       .attr('width', legendWidth)
@@ -124,7 +131,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     .attr('width', gradientRectWidth)
     .attr('height', legendHeight)
     .style('fill', 'url(#gradient)')
-    .attr('transform', 'translate(0,10)');
+    .attr('transform', 'translate(0, 0)');
 
     const y = d3.scaleLinear()
       .range([legendHeight, 0])
@@ -134,20 +141,16 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
 
     key.append('g')
       .attr('class', 'y axis')
-      .attr('transform', `translate(${gradientRectWidth},10)`)
+      .attr('transform', `translate(${gradientRectWidth}, 0)`)
       .call(yAxis);
     /* end legend */
-    // exclude legend from the scale
-    const resolution = 1000;
-    const scaleHeight = window.innerHeight / resolution;
-    const scaleWidth = window.innerWidth / resolution;
-    const scale = Math.min(scaleHeight, scaleWidth) * this.scaleFactor;
+    svg = svg.append('g')
+    .attr('transform', `translate(${legendWidth + gradientRectWidth * 2}, 0)`)
     svg = svg.append('g')
       .attr('class', 'colormap-g')
       .attr('transform', `scale(${scale})`);
     svg.append('g')
       .attr('class', 'state-container')
-      .attr('transform', `translate(${legendWidth}, 0)`)
       .selectAll('path')
       .data(topojson.feature(US_FEATURE_DATA, US_FEATURE_DATA.objects.states).features)
       .enter()
@@ -185,7 +188,6 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         });
     // draw state outlines
     svg.append('path')
-    .attr('transform', `translate(${legendWidth}, 0)`)
       .datum(topojson.mesh(US_FEATURE_DATA, US_FEATURE_DATA.objects.states, (a, b) => a !== b ))
       .attr('class', 'state-paths')
       .attr('d', path);
