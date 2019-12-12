@@ -1,12 +1,11 @@
 {
-  "name": "ng-d3-us-colormap",
-  "version": "0.0.1",
+  "name": "avh2ag-uscolormap",
+  "version": "1.0.4",
   "peerDependencies": {
     "@angular/common": "^8.2.14",
     "@angular/core": "^8.2.14",
     "d3": "^5.12.0",
     "topojson-client": "^3.1.0",
-    "d3-scale-chromatic": "^1.5.0",
-    "class-transformer": "^0.2.3"
+    "d3-scale-chromatic": "^1.5.0"
   }
 }

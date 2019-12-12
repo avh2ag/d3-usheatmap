@@ -18,7 +18,9 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
   @Input() data = [];
   @Input() lowColor = '#c9c9c9';
   @Input() highColor = '#1976d2';
+  @Input() scaleFactor = .9;
   @Input() tooltipTextFn: (stateName: string, value: string ) => string;
+  @Input() isUseStateCode = true;
   containerSelector = `#${this.chartId}`;
   @ViewChild('chartContainer', {static: false}) chartContainer;
   constructor() { }
@@ -29,9 +31,11 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
   }
   ngOnChanges(changes: SimpleChanges) {
     // check for changes to data, lowColor, highColor
+    this.checkForChange(changes, 'chartId', this.drawMap);
     this.checkForChange(changes, 'data', this.drawMap);
     this.checkForChange(changes, 'lowColor', this.drawMap);
     this.checkForChange(changes, 'highColor', this.drawMap);
+    this.checkForChange(changes, 'isUseStateCode', this.drawMap);
   }
   // callback to run if change detected
   private checkForChange(changes: SimpleChanges, changeKeyName: string, cb: () => any) {
@@ -62,14 +66,15 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
                   .attr('width', '100%')
                   .attr('height', '100%');
 
+    const stateSelectorType = this.isUseStateCode ? 'code' : 'name';
     const stateValues = d3.map();
     this.data.forEach( d => {
-      stateValues.set(d.name, +d.value);
+      stateValues.set(d[stateSelectorType], +d.value);
     });
 
     const stateNames = d3.map();
     stateCodes.forEach((d) => {
-      stateNames.set(+d.id, d.name);
+      stateNames.set(+d.id, d[stateSelectorType]);
     });
     const path = d3.geoPath();
 
@@ -132,7 +137,10 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       .call(yAxis);
     /* end legend */
     // exclude legend from the scale
-    const scale = window.innerWidth / 1000 * .9; // 1000 for the 1K resolution we're using
+    const resolution = 1000;
+    const scaleHeight = window.innerHeight / resolution;
+    const scaleWidth = window.innerWidth / resolution;
+    const scale = Math.min(scaleHeight, scaleWidth) * this.scaleFactor;
     svg = svg.append('g')
       .attr('class', 'colormap-g')
       .attr('transform', `scale(${scale})`);
@@ -159,8 +167,8 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
               const valueText = val ? val : 'N/A';
               return this.getTooltipHTML(stateName, valueText);
             })
-            .transition()
-            .duration(200)
+            // .transition()
+            // .duration(200)
             .style('left', `${d3.event.pageX}px`)
             .style('top', `${d3.event.pageY}px`)
             .style('opacity', 1);
@@ -168,8 +176,10 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         .on('mouseout', d => {
           d3.select(`#${this.chartId} .colormap-tooltip`)
             .html('')
-            .transition()
-            .duration(400)
+            // .transition()
+            // .duration(200)
+            .style('left', `0px`)
+            .style('top', `0px`)
             .style('opacity', 0);
         });
     // draw state outlines

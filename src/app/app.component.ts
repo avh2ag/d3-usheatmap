@@ -10,19 +10,23 @@ export class AppComponent {
   title = 'us-colormap';
   data = of([
     {
+      code: 'FL',
       name: 'Florida',
       value: '2'
     },
 
     {
+      code: 'OR',
       name: 'Oregon',
       value: '0'
     },
     {
+      code: 'TN',
       name: 'Tennessee',
       value: '9'
     },
     {
+      code: 'TX',
       name: 'Texas',
       value: 43
     }
