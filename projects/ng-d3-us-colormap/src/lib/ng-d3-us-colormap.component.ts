@@ -7,7 +7,7 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
 @Component({
   selector: 'ng-d3-us-colormap',
   template: `
-    <div #chartContainer [id]='chartId'>
+    <div #chartContainer [id]='chartId' [style.height]="height" [style.width]="width">
       <div class="colormap-tooltip"></div>
     </div>
   `,
@@ -19,6 +19,8 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
   @Input() lowColor = '#c9c9c9';
   @Input() highColor = '#1976d2';
   @Input() scaleFactor = .9;
+  @Input() height = '100%';
+  @Input() width = '100%';
   @Input() tooltipTextFn: (stateName: string, value: string ) => string;
   @Input() isUseStateCode = true;
   containerSelector = `#${this.chartId}`;
@@ -63,8 +65,8 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     d3.select(`${this.containerSelector} svg`).remove();
     let svg = d3.select(this.containerSelector)
                   .append('svg')
-                  .attr('width', '100%')
-                  .attr('height', '100%');
+                  .attr('width', this.width)
+                  .attr('height', this.height);
 
     const stateSelectorType = this.isUseStateCode ? 'code' : 'name';
     const stateValues = d3.map();
@@ -96,60 +98,12 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     const constraintSize = Math.min(width, height);
     const resolution = 1000;
     const scale = constraintSize / resolution * this.scaleFactor;
-
     const colorScale = d3.scaleLinear().domain([0, dataMax]).range([this.lowColor, this.highColor]);
     /* legend */
-    const legendWidth = 60 * this.scaleFactor;
-    const legendHeight = scale * constraintSize;
-    const key = svg
-      .append('g')
-      .attr('width', legendWidth)
-      .attr('x', 0)
-      .attr('height', legendHeight)
-      .attr('class', 'legend');
-    const legend = key.append('defs')
-      .append('svg:linearGradient')
-      .attr('id', 'gradient')
-      .attr('x1', '100%')
-      .attr('y1', '0%')
-      .attr('x2', '100%')
-      .attr('y2', '100%')
-      .attr('spreadMethod', 'pad');
-
-    legend.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', this.highColor)
-      .attr('stop-opacity', 1);
-
-    legend.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', this.lowColor)
-      .attr('stop-opacity', 1);
-
-    const gradientRectWidth = 15;
-    key.append('rect')
-    .attr('width', gradientRectWidth)
-    .attr('height', legendHeight)
-    .style('fill', 'url(#gradient)')
-    .attr('transform', 'translate(0, 0)');
-
-    const y = d3.scaleLinear()
-      .range([legendHeight, 0])
-      .domain([0, dataMax]);
-
-    const yAxis = d3.axisRight(y);
-
-    key.append('g')
-      .attr('class', 'y axis')
-      .attr('transform', `translate(${gradientRectWidth}, 0)`)
-      .call(yAxis);
-    /* end legend */
-    svg = svg.append('g')
-    .attr('transform', `translate(${legendWidth + gradientRectWidth * 2}, 0)`)
-    svg = svg.append('g')
-      .attr('class', 'colormap-g')
-      .attr('transform', `scale(${scale})`);
-    svg.append('g')
+    const colormap = svg.append('g')
+    .attr('class', 'colormap-g')
+    .attr('transform', `scale(${scale})`);
+    colormap.append('g')
       .attr('class', 'state-container')
       .selectAll('path')
       .data(topojson.feature(US_FEATURE_DATA, US_FEATURE_DATA.objects.states).features)
@@ -187,10 +141,49 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
             .style('opacity', 0);
         });
     // draw state outlines
-    svg.append('path')
+    colormap.append('path')
       .datum(topojson.mesh(US_FEATURE_DATA, US_FEATURE_DATA.objects.states, (a, b) => a !== b ))
       .attr('class', 'state-paths')
       .attr('d', path);
+    // bottom legend
+    const key = svg
+      .append('g')
+      .attr('transform', `translate(10, ${height * scale * .8})`)
+      .attr('class', 'legend');
+    const legend = key.append('defs')
+      .append('svg:linearGradient')
+      .attr('id', 'gradient')
+      .attr('x1', '100%')
+      .attr('y1', '100%')
+      .attr('x2', '0%')
+      .attr('y2', '100%')
+      .attr('spreadMethod', 'pad');
+
+    legend.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', this.highColor)
+      .attr('stop-opacity', 1);
+
+    legend.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', this.lowColor)
+      .attr('stop-opacity', 1);
+
+    key.append('rect')
+    .attr('width', width * scale)
+    .attr('height', 25)
+    .style('fill', 'url(#gradient)')
+    .attr('transform', 'translate(10, 25)');
+
+    const y = d3.scaleLinear()
+      .range([0, width * scale])
+      .domain([0, dataMax]);
+    const yAxis = d3.axisBottom(y);
+    key.append('g')
+      .attr('class', 'y axis')
+      .attr('transform', `translate(10, 50)`)
+      .call(yAxis);
+    /* end legend */
 
   }
 

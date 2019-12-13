@@ -9,10 +9,8 @@
 }
 
 #united-states {
-  height: 100vh;
-  width: 100vh;
-  min-width: 500px;
-  min-height: 500px;
+  height:inherit;
+  // overflow: auto;
 }
 
 .state:hover{
