@@ -7,12 +7,9 @@
   stroke: #fff;
   stroke-linejoin: round;
 }
-
-#united-states {
-  height:inherit;
-  // overflow: auto;
+.tick {
+  font-size: 14px;
 }
-
 .state:hover{
   fill-opacity:0.65;
 }

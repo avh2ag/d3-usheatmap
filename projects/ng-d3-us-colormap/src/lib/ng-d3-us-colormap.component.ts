@@ -7,8 +7,8 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
 @Component({
   selector: 'ng-d3-us-colormap',
   template: `
-    <div #chartContainer [id]='chartId' [style.height]="height" [style.width]="width">
-      <div class="colormap-tooltip"></div>
+    <div #chartContainer [id]='chartId' >
+      <div class='colormap-tooltip'></div>
     </div>
   `,
   styles: []
@@ -18,16 +18,15 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
   @Input() data = [];
   @Input() lowColor = '#c9c9c9';
   @Input() highColor = '#1976d2';
-  @Input() scaleFactor = .9;
-  @Input() height = '100%';
-  @Input() width = '100%';
   @Input() tooltipTextFn: (stateName: string, value: string ) => string;
   @Input() isUseStateCode = true;
+
   containerSelector = `#${this.chartId}`;
   @ViewChild('chartContainer', {static: false}) chartContainer;
   constructor() { }
 
   ngOnInit() {}
+
   ngAfterViewInit() {
     this.drawMap();
   }
@@ -38,7 +37,9 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     this.checkForChange(changes, 'lowColor', this.drawMap);
     this.checkForChange(changes, 'highColor', this.drawMap);
     this.checkForChange(changes, 'isUseStateCode', this.drawMap);
+
   }
+
   // callback to run if change detected
   private checkForChange(changes: SimpleChanges, changeKeyName: string, cb: () => any) {
     const change: SimpleChange = changes[changeKeyName];
@@ -63,10 +64,18 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
 
   drawMap = () => {
     d3.select(`${this.containerSelector} svg`).remove();
-    let svg = d3.select(this.containerSelector)
-                  .append('svg')
-                  .attr('width', this.width)
-                  .attr('height', this.height);
+    const bounds = this.chartContainer.nativeElement.getBoundingClientRect();
+    const width = bounds.width ? bounds.width : window.innerWidth;
+    const height = bounds.height ? bounds.height : window.innerHeight;
+    const resolution = 1000;
+    const scaledHeight = width * 0.618;
+    const viewBoxHeight = scaledHeight * 1.2;
+    const svg = d3.select(this.containerSelector)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('viewBox', `0 0 ${width} ${ viewBoxHeight }`)
+      .attr('preserveAspectRatio', 'xMinYMid');
 
     const stateSelectorType = this.isUseStateCode ? 'code' : 'name';
     const stateValues = d3.map();
@@ -92,17 +101,11 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       }
     });
 
-    const bounds = this.chartContainer.nativeElement.getBoundingClientRect();
-    const width = bounds.width ? bounds.width : window.innerWidth;
-    const height = bounds.height ? bounds.height : window.innerHeight;
-    const constraintSize = Math.min(width, height);
-    const resolution = 1000;
-    const scale = constraintSize / resolution * this.scaleFactor;
     const colorScale = d3.scaleLinear().domain([0, dataMax]).range([this.lowColor, this.highColor]);
     /* legend */
     const colormap = svg.append('g')
-    .attr('class', 'colormap-g')
-    .attr('transform', `scale(${scale})`);
+    .attr('class', 'colormap-g');
+    // .attr('transform', `scale(${scale})`);
     colormap.append('g')
       .attr('class', 'state-container')
       .selectAll('path')
@@ -148,8 +151,9 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     // bottom legend
     const key = svg
       .append('g')
-      .attr('transform', `translate(10, ${height * scale * .8})`)
-      .attr('class', 'legend');
+      .attr('transform', `translate(${.05 * width}, ${scaledHeight})`)
+      .attr('class', 'legend')
+      .append('g');
     const legend = key.append('defs')
       .append('svg:linearGradient')
       .attr('id', 'gradient')
@@ -170,20 +174,24 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       .attr('stop-opacity', 1);
 
     key.append('rect')
-    .attr('width', width * scale)
+    .attr('width', width * .9)
     .attr('height', 25)
     .style('fill', 'url(#gradient)')
-    .attr('transform', 'translate(10, 25)');
+    .attr('transform', 'translate(0, 25)');
 
     const y = d3.scaleLinear()
-      .range([0, width * scale])
+      .range([0, width * .9])
       .domain([0, dataMax]);
     const yAxis = d3.axisBottom(y);
     key.append('g')
       .attr('class', 'y axis')
-      .attr('transform', `translate(10, 50)`)
+      .attr('transform', `translate(0, 50)`)
       .call(yAxis);
     /* end legend */
+
+
+    d3.select('.colormap-g').attr('transform', 'scale(' + width / resolution + ')');
+
 
   }
 
