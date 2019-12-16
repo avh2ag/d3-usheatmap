@@ -1,6 +1,10 @@
 {
   "name": "avh2ag-uscolormap",
   "version": "1.2.0",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/avh2ag/d3-usheatmap"
+  },
   "peerDependencies": {
     "@angular/common": "^8.2.14",
     "@angular/core": "^8.2.14",
