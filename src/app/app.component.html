@@ -1,9 +1,28 @@
-
-<div style="width:100%; height:100%">
-  <ng-d3-us-colormap [data]="data | async"
-  [isUseStateCode]="true"
-  [tooltipTextFn]="tooltipHTMLFn"
-  (stateClicked)="onStateClicked($event)" >
-</ng-d3-us-colormap>
+<div style="display: flex;">
+  <div style="width:80%; height:100%;">
+    <ng-d3-us-colormap [data]="data | async"
+    [isUseStateCode]="true"
+    [tooltipTextFn]="tooltipHTMLFn"
+    (stateClicked)="onStateClicked($event)"
+    (stateHovered)="onStateHover($event)"
+    (stateMouseout)="onStateMouseout($event)" >
+    </ng-d3-us-colormap>
+  </div>
+  <div>
+    <p>{{ selectedState }} has been selected on click</p>
+    <div *ngIf="showPreview">
+      <table>
+        <tr>
+          <th>State</th>
+          <th>Random Count</th>
+        </tr>
+        <tr>
+          <td>{{ previewState['stateName'] || '' }}</td>
+          <td>{{ previewState['val'] || '' }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
 </div>
+
 

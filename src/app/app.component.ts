@@ -8,6 +8,9 @@ import { of } from 'rxjs';
 })
 export class AppComponent {
   title = 'us-colormap';
+  selectedState = '';
+  previewState = {};
+  showPreview = false;
   data = of([
     {
       code: 'FL',
@@ -56,8 +59,23 @@ export class AppComponent {
     `;
   }
 
-  onStateClicked(event: any) {
-    console.log(event);
+  onStateClicked(event: {stateName: string, val: number }) {
+    this.selectedState = event.stateName;
+  }
+
+  onStateHover(event: {stateName: string, val: number }) {
+    // timeout for easing
+    setTimeout(() => {
+      this.showPreview = true;
+      this.previewState = {...event};
+      console.log(this.previewState);
+    }, 200);
+
+  }
+  onStateMouseout(event: {stateName: string, val: number }) {
+    setTimeout(() => {
+      this.showPreview = false;
+    }, 200);
   }
 
 }

@@ -10,7 +10,6 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
   selector: 'ng-d3-us-colormap',
   template: `
     <div #chartContainer [id]='chartId' >
-      <div class='colormap-tooltip'></div>
     </div>
   `,
   styles: []
@@ -18,12 +17,13 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
 export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() chartId = 'united-states';
   @Input() data = [];
-  @Input() dataScaleColors = ['red', 'yellow', 'green'];
+  @Input() dataScaleColors = ['#7f0000', '#ffd500', '#228B22'];
   @Input() noEntryColor = '#c9c9c9';
   @Input() tooltipTextFn: (stateName: string, value: string ) => string;
   @Input() isUseStateCode = true;
   @Output() stateClicked = new EventEmitter<any>();
-
+  @Output() stateHovered = new EventEmitter<any>();
+  @Output() stateMouseout = new EventEmitter<any>();
   containerSelector = `#${this.chartId}`;
   @ViewChild('chartContainer', {static: false}) chartContainer;
   constructor() { }
@@ -54,9 +54,6 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     }
   }
 
-  private getTooltipHTML(stateName: string, value: string) {
-    return this.tooltipTextFn ? this.tooltipTextFn(stateName, value) : `${stateName}: ${value}`;
-  }
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
@@ -66,6 +63,11 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
   }
 
   drawMap = () => {
+    const getStateData = (featureData) => {
+      const stateName = stateNames.get(+featureData.id);
+      const val = stateValues.get(stateName);
+      return { stateName, val };
+    };
     d3.select(`${this.containerSelector} svg`).remove();
     const bounds = this.chartContainer.nativeElement.getBoundingClientRect();
     const width = bounds.width ? bounds.width : window.innerWidth;
@@ -129,31 +131,13 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         })
         .attr('d', path)
         .on('click', d => {
-          const stateName = stateNames.get(+d.id);
-          const val = stateValues.get(stateName);
-          this.stateClicked.emit({ stateName, val});
+          this.stateClicked.emit(getStateData(d));
         })
         .on('mouseover', d => {
-          d3.select(`#${this.chartId} .colormap-tooltip`)
-            .html(() => {
-              const stateName = stateNames.get(+d.id);
-              const val = stateValues.get(stateName);
-              return this.getTooltipHTML(stateName, val);
-            })
-            .transition()
-            .duration(200)
-            .style('left', `${d3.event.pageX}px`)
-            .style('top', `${d3.event.pageY}px`)
-            .style('opacity', 1);
+          this.stateHovered.emit(getStateData(d));
         })
         .on('mouseout', d => {
-          d3.select(`#${this.chartId} .colormap-tooltip`)
-            .html('')
-            .transition()
-            .duration(200)
-            .style('left', `0px`)
-            .style('top', `0px`)
-            .style('opacity', 0);
+          this.stateMouseout.emit(getStateData(d));
         });
     // draw state outlines
     colormap.append('path')
