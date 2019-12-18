@@ -1,4 +1,6 @@
-import { Component, OnInit, Input, AfterViewInit, HostListener, ViewChild, OnChanges, SimpleChanges, SimpleChange } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, HostListener,
+  ViewChild, OnChanges, SimpleChanges,
+  SimpleChange, Output, EventEmitter } from '@angular/core';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import { stateCodes } from './map-info/states';
@@ -16,10 +18,13 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
 export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() chartId = 'united-states';
   @Input() data = [];
-  @Input() lowColor = '#c9c9c9';
-  @Input() highColor = '#1976d2';
+  // @Input() lowColor = '#c9c9c9';
+  // @Input() highColor = '#1976d2';
+  @Input() dataScaleColors = ['red', 'yellow', 'green'];
+  @Input() noEntryColor = '#c9c9c9';
   @Input() tooltipTextFn: (stateName: string, value: string ) => string;
   @Input() isUseStateCode = true;
+  @Output() stateClicked = new EventEmitter<any>();
 
   containerSelector = `#${this.chartId}`;
   @ViewChild('chartContainer', {static: false}) chartContainer;
@@ -34,8 +39,8 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     // check for changes to data, lowColor, highColor
     this.checkForChange(changes, 'chartId', this.drawMap);
     this.checkForChange(changes, 'data', this.drawMap);
-    this.checkForChange(changes, 'lowColor', this.drawMap);
-    this.checkForChange(changes, 'highColor', this.drawMap);
+
+    this.checkForChange(changes, 'dataScaleColors', this.drawMap);
     this.checkForChange(changes, 'isUseStateCode', this.drawMap);
 
   }
@@ -100,8 +105,10 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         dataMax = val;
       }
     });
-
-    const colorScale = d3.scaleLinear().domain([0, dataMax]).range([this.lowColor, this.highColor]);
+    dataMax = 20;
+    const colorScale = d3.scaleLinear()
+      .domain([dataMax, (dataMax / this.dataScaleColors.length / 2),  0])
+      .range(this.dataScaleColors);
     /* legend */
     const colormap = svg.append('g')
     .attr('class', 'colormap-g');
@@ -115,9 +122,12 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         .attr('class', 'state')
         .attr('fill', (d) => {
           // pick color for state
-          const val = stateValues.get(stateNames.get(+d.id)) || 0;
-          const col =  colorScale(val);
-          return col ? col : this.lowColor;
+          let color = this.noEntryColor;
+          const val = stateValues.get(stateNames.get(+d.id)) || -1;
+          if (val > 0) {
+            color = colorScale(val);
+          }
+          return color;
         })
         .attr('d', path)
         .on('mouseover', d => {
@@ -125,8 +135,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
             .html(() => {
               const stateName = stateNames.get(+d.id);
               const val = stateValues.get(stateName);
-              const valueText = val ? val : 'N/A';
-              return this.getTooltipHTML(stateName, valueText);
+              return this.getTooltipHTML(stateName, val);
             })
             .transition()
             .duration(200)
@@ -163,15 +172,12 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
       .attr('y2', '100%')
       .attr('spreadMethod', 'pad');
 
-    legend.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', this.highColor)
-      .attr('stop-opacity', 1);
-
-    legend.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', this.lowColor)
-      .attr('stop-opacity', 1);
+    legend.selectAll('stop')
+        .data(colorScale.range())
+        .enter()
+        .append('stop')
+        .attr('offset', (d, i) => i / (colorScale.range().length - 1) )
+        .attr('stop-color', (d) => d);
 
     key.append('rect')
     .attr('width', width * .9)

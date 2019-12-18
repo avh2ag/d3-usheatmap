@@ -12,13 +12,13 @@ export class AppComponent {
     {
       code: 'FL',
       name: 'Florida',
-      value: '2'
+      value: 3
     },
 
     {
       code: 'OR',
       name: 'Oregon',
-      value: '0'
+      value: '53'
     },
     {
       code: 'TN',
@@ -29,10 +29,18 @@ export class AppComponent {
       code: 'TX',
       name: 'Texas',
       value: 43
+    },
+    {
+      code: 'CA',
+      name: 'California',
+      value: 1
     }
   ]);
 
-  tooltipHTMLFn(stateName: string, value: string) {
+  tooltipHTMLFn(stateName: string, value) {
+    if (value === undefined) {
+      value = 'N/A';
+    }
     return `
       <table>
         <tr>
