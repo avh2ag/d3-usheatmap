@@ -18,8 +18,6 @@ import { US_FEATURE_DATA } from './map-info/us-10m.v1';
 export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() chartId = 'united-states';
   @Input() data = [];
-  // @Input() lowColor = '#c9c9c9';
-  // @Input() highColor = '#1976d2';
   @Input() dataScaleColors = ['red', 'yellow', 'green'];
   @Input() noEntryColor = '#c9c9c9';
   @Input() tooltipTextFn: (stateName: string, value: string ) => string;
@@ -105,7 +103,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
         dataMax = val;
       }
     });
-    dataMax = 20;
+
     const colorScale = d3.scaleLinear()
       .domain([dataMax, (dataMax / this.dataScaleColors.length / 2),  0])
       .range(this.dataScaleColors);
@@ -130,6 +128,11 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
           return color;
         })
         .attr('d', path)
+        .on('click', d => {
+          const stateName = stateNames.get(+d.id);
+          const val = stateValues.get(stateName);
+          this.stateClicked.emit({ stateName, val});
+        })
         .on('mouseover', d => {
           d3.select(`#${this.chartId} .colormap-tooltip`)
             .html(() => {

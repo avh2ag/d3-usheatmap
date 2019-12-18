@@ -56,4 +56,8 @@ export class AppComponent {
     `;
   }
 
+  onStateClicked(event: any) {
+    console.log(event);
+  }
+
 }
