@@ -71,14 +71,13 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     d3.select(`${this.containerSelector} svg`).remove();
     const bounds = this.chartContainer.nativeElement.getBoundingClientRect();
     const width = bounds.width ? bounds.width : window.innerWidth;
-    const height = bounds.height ? bounds.height : window.innerHeight;
     const resolution = 1000;
     const scaledHeight = width * 0.618;
-    const viewBoxHeight = scaledHeight * 1.2;
+    const viewBoxHeight = scaledHeight + 80; // 80 is the total amount of translation for legend
     const svg = d3.select(this.containerSelector)
       .append('svg')
       .attr('width', width)
-      .attr('height', height)
+      .attr('height', scaledHeight)
       .attr('viewBox', `0 0 ${width} ${ viewBoxHeight }`)
       .attr('preserveAspectRatio', 'xMinYMid');
 

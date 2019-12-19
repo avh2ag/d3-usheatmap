@@ -68,7 +68,6 @@ export class AppComponent {
     setTimeout(() => {
       this.showPreview = true;
       this.previewState = {...event};
-      console.log(this.previewState);
     }, 200);
 
   }
