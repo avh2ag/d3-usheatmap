@@ -146,7 +146,7 @@ export class NgD3UsColormapComponent implements OnInit, AfterViewInit, OnChanges
     // bottom legend
     const key = svg
       .append('g')
-      .attr('transform', `translate(${.05 * width}, ${scaledHeight})`)
+      .attr('transform', `translate(5, ${scaledHeight})`)
       .attr('class', 'legend')
       .append('g');
     const legend = key.append('defs')
